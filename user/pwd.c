@@ -3,9 +3,6 @@
 #include "user/user.h"
 #include "kernel/fs.h"
 
-#define printErrorExit(fmt, ...) (fprintf(2,fmt, __VA_ARGS__);\
-              exit(1))
-
 int
 main(int argc, char *argv[]) {
 
@@ -23,18 +20,22 @@ main(int argc, char *argv[]) {
   p += 2;
 
   if (stat(".", &last_st) != 0) {
-    printErrorExit("pwd: int stat");
+    fprintf(2, "pwd: int stat");
+    exit(1);
   }
   if (chdir("..") != 0) {
-    printErrorExit("pwd: init chdir");
+    fprintf(2, "pwd: init chdir");
+    exit(1);
   }
   while (1) {
     if ((fd = open(".", 0)) < 0) {
-      printErrorExit("pwd: loop open\n");
+      fprintf(2, "pwd: loop open\n");
+      exit(1);
     }
     if (fstat(fd, &new_st) != 0) {
       close(fd);
-      printErrorExit("pwd: loop stat");
+      fprintf(2, "pwd: loop stat");
+      exit(1);
     }
 
     struct dirent dirEntry;
@@ -52,14 +53,16 @@ main(int argc, char *argv[]) {
 
       if (stat(buf, &st) != 0) {
         close(fd);
-        printErrorExit("pwd: entry stat of %s; folder ino:%d", buf, new_st.ino);
+        fprintf(2, "pwd: entry stat of %s; folder ino:%d", buf, new_st.ino);
+        exit(1);
       }
       if (st.ino == last_st.ino) {
         int length = strlen(dirEntry.name);
         rp -= length;
         if (rp <= result) {
           close(fd);
-          printErrorExit("pwd: path to long", buf, new_st.ino);
+          fprintf(2, "pwd: path to long", buf, new_st.ino);
+          exit(1);
         }
         memmove(rp, dirEntry.name, sizeof(char) * length);
         rp--;
@@ -75,7 +78,8 @@ main(int argc, char *argv[]) {
     }
 
     if (chdir("..") != 0) {
-      printErrorExit("pwd: loop chdir");
+      fprintf(2, "pwd: loop chdir");
+      exit(1);
     }
 
   }
